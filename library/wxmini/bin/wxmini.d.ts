@@ -1597,6 +1597,984 @@ declare namespace wx {
             top: number,
             width: number,
             height: number,
+            color?: string
+            backgroundColor?: string,
+            borderColor?: string,
+            borderWidth?: number,
+            borderRadius?: number,
+            textAlign?: "left" | "center" | "right",
+            fontSize?: number,
+            lineHeight?: number
+        },
+        withCredentials?: boolean,
+        lang?: "en" | "zh_CN" | "zh_TW"
+    }): UserInfoButton;
+
+    /**
+     * 通过 wx.login 接口获得的用户登录态拥有一定的时效性。用户越久未使用小程序，用户登录态越有可能失效。反之如果用户一直在使用小程序，则用户登录态一直保持有效。具体时效逻辑由微信维护，对开发者透明。开发者只需要调用 wx.checkSession 接口检测当前用户登录态是否有效。登录态过期后开发者可以再调用 wx.login 获取新的用户登录态。
+     */
+    function checkSession(object: { success?: (res?: any) => void, fail?: (res?: any) => void, complete?: (res?: any) => void }): void;
+
+    /** 提前向用户发起授权请求。调用后会立刻弹窗询问用户是否同意授权小程序使用某项功能或获取用户的某些数据，但不会实际调用对应接口。如果用户之前已经同意授权，则不会出现弹窗，直接返回成功。更多用法详见 用户授权。*/
+    function authorize(object: { scope: string, success?: (res?: any) => void, fail?: (res?: any) => void, complete?: (res?: any) => void }): void;
+
+    /**
+     * 调用接口获取登录凭证（code）进而换取用户登录态信息，包括用户的唯一标识（openid） 及本次登录的 会话密钥（session_key）等。用户数据的加解密通讯需要依赖会话密钥完成。
+     */
+    function login(object: { timeout?: number, success?: (res: { code: string }) => void, fail?: (res?: any) => void, complete?: (res?: any) => void }): void;
+
+    /**
+     * 只有开放数据域能调用，获取主域和开放数据域共享的 sharedCanvas
+     */
+    function getSharedCanvas(): Canvas;
+
+    /** 托管的 KV 数据*/
+    interface KVData {
+        /** 数据的 key*/
+        key: string;
+        /** 数据的 value*/
+        value: string;
+    }
+
+    /** 托管数据*/
+    interface UserGameData {
+        /** 用户的微信头像 url*/
+        avatarUrl: string;
+        /** 用户的微信昵称*/
+        nickname: string;
+        /** 用户的 openid*/
+        openid: string;
+        /** 用户的托管 KV 数据列表*/
+        KVDataList: Array<KVData>;
+    }
+
+    /**
+     * 拉取当前用户所有同玩好友的托管数据。该接口只可在开放数据域下使用
+     */
+    function getFriendCloudStorage(object: { keyList: string[], success?: (res: { data: Array<UserGameData> }) => void, fail?: (res?: any) => void, complete?: (res?: any) => void }): void;
+
+    /**
+     * 在小游戏是通过群分享卡片打开的情况下，可以通过调用该接口获取群同玩成员的游戏数据。该接口只可在开放数据域下使用。
+     */
+    function getGroupCloudStorage(object: { shareTicket: string, keyList: string[], success?: (res: { data: Array<UserGameData> }) => void, fail?: (res?: any) => void, complete?: (res?: any) => void }): void;
+
+    /**
+     * 获取当前用户托管数据当中对应 key 的数据。该接口只可在开放数据域下使用
+     */
+    function getUserCloudStorage(object: { keyList: Array<string>, success?: (res: { KVDataList: Array<KVData> }) => void, fail?: (res?: any) => void, complete?: (res?: any) => void }): void;
+
+    /**
+     * 删除用户托管数据当中对应 key 的数据。
+     */
+    function removeUserCloudStorage(object: { keyList: string[], success?: (res?: any) => void, fail?: (res?: any) => void, complete?: (res?: any) => void }): void;
+
+    /**
+     * 对用户托管数据进行写数据操作，允许同时写多组 KV 数据。
+     */
+    function setUserCloudStorage(object: { KVDataList: Array<KVData>, success?: (res?: any) => void, fail?: (res?: any) => void, complete?: (res?: any) => void }): void;
+
+    /** 在无须用户授权的情况下，批量获取用户信息。该接口只在开放数据域下可用*/
+    function getUserInfo(object: {
+        /** 要获取信息的用户的 openId 数组，如果要获取当前用户信息，则将数组中的一个元素设为 'selfOpenId'*/
+        openIdList?: Array<string>,
+        /** 显示用户信息的语言*/
+        lang?: 'en' | 'zh_CN' | 'zh_TW',
+        success?: (res: {
+            data: Array<{
+                avatarUrl: string,
+                city: string,
+                country: string,
+                gender: number,
+                language: string,
+                nickName: string,
+                openId: string,
+                province: string
+            }>
+        }) => void, fail?: (res?: any) => void, complete?: (res?: any) => void
+    }): void;
+
+    /**
+     * 监听主域发送的消息
+     */
+    function onMessage(callback: () => void): void;
+
+    /** 开放数据域对象*/
+    interface OpenDataContext {
+        /** 开放数据域和主域共享的 sharedCanvas*/
+        canvas: Canvas;
+        /**
+         * 向开放数据域发送消息
+         * @param message {} 要发送的消息，message 中及嵌套对象中 key 的 value 只能是 primitive value。即 number、string、boolean、null、undefined。
+         */
+        postMessage(message: {}): void;
+    }
+
+    /**
+     * 获取开放数据域
+     */
+    function getOpenDataContext(): OpenDataContext;
+
+    /**
+     * 根据用户当天游戏时间判断用户是否需要休息
+     */
+    function checkIsUserAdvisedToRest(object: {
+        todayPlayedTime: number,
+        success?: (res: { result: boolean }) => void,
+        fail?: (res?: any) => void, complete?: (res?: any) => void
+    }): void;
+
+    /**用户点击后打开意见反馈页面的按钮 */
+    interface FeedbackButton {
+        /** 按钮的类型*/
+        type: 'text' | 'image';
+        text: string,
+        image: string,
+        style: {
+            left: number,
+            top: number,
+            width: number,
+            height: number,
+            backgroundColor: string,
+            borderColor: string,
+            borderWidth: number,
+            borderRadius: number,
+            textAlign: 'left' | 'center' | 'right',
+            fontSize: number,
+            lineHeight: number
+        },
+
+        /** 显示意见反馈按钮*/
+        show(): void;
+
+        /** 隐藏意见反馈按钮。*/
+        hide(): void;
+
+        /** 销毁意见反馈按钮*/
+        destroy(): void;
+
+        /** 监听意见反馈按钮的点击事件*/
+        onTap(callback: () => void): void;
+
+        /** 取消监听意见反馈按钮的点击事件*/
+        offTap(callback: () => void): void;
+    }
+    /**
+     * 创建打开意见反馈页面的按钮
+     */
+    function createFeedbackButton(object: {
+        type: 'text' | 'image',
+        text?: string,
+        image?: string,
+        style: {
+            left: number,
+            top: number,
+            width: number,
+            height: number,
+            backgroundColor: string,
+            borderColor: string,
+            borderWidth: number,
+            borderRadius: number,
+            textAlign: 'left' | 'center' | 'right',
+            fontSize: number,
+            lineHeight: number
+        }
+    }): FeedbackButton;
+
+    /** 用户授权设置信息，详情参考权限*/
+    interface AuthSetting {
+        /** 是否授权用户信息，对应接口 wx.getUserInfo*/
+        userInfo: boolean;
+        /** 是否授权地理位置，对应接口 wx.getLocation*/
+        userLocation: boolean;
+        /** 是否授权微信运动步数，对应接口 wx.getWeRunData*/
+        werun: boolean;
+        /** 是否授权保存到相册 wx.saveImageToPhotosAlbum*/
+        writePhotosAlbum: boolean;
+    }
+
+    /** 调起客户端小程序设置界面，返回用户设置的操作结果。设置界面只会出现小程序已经向用户请求过的权限。*/
+    function openSetting(object: {
+        success?: (res: { authSetting: AuthSetting }) => void,
+        fail?: (res?: any) => void, complete?: (res?: any) => void
+    }): void;
+
+    /** 获取用户的当前设置。返回值中只会出现小程序已经向用户请求过的权限。*/
+    function getSetting(object: {
+        success?: (res: { authSetting: AuthSetting }) => void,
+        fail?: (res?: any) => void, complete?: (res?: any) => void
+    }): void;
+
+    /**
+     * 用户点击后打开设置页面的按钮
+     */
+    interface OpenSettingButton {
+        type: 'text' | 'image';
+        text: string,
+        image: string,
+        style: {
+            left: number,
+            top: number,
+            width: number,
+            height: number,
+            backgroundColor: string,
+            borderColor: string,
+            borderWidth: number,
+            borderRadius: number,
+            textAlign: 'left' | 'center' | 'right',
+            fontSize: number,
+            lineHeight: number
+        },
+
+        show(): void;
+
+        hide(): void;
+
+        destroy(): void;
+
+        onTap(callback: () => void): void;
+
+        offTap(callback: () => void): void;
+    }
+
+    /** 创建打开设置页面的按钮*/
+    function createOpenSettingButton(object: {
+        type: 'text' | 'image',
+        text?: string,
+        image?: string,
+        style: {
+            left: number,
+            top: number,
+            width: number,
+            height: number,
+            backgroundColor: string,
+            borderColor: string,
+            borderWidth: number,
+            borderRadius: number,
+            textAlign: 'left' | 'center' | 'right',
+            fontSize: number,
+            lineHeight: number
+        },
+        show(): void;
+
+        hide(): void;
+
+        destroy(): void;
+
+        onTap(callback: () => void): void;
+
+        offTap(callback: () => void): void;
+    }): OpenSettingButton;
+
+    /** 游戏圈按钮。游戏圈按钮被点击后会跳转到小游戏的游戏圈。更多关于游戏圈的信息见 游戏圈使用指南*/
+    interface GameClubButton {
+        type: 'text' | 'image',
+        text?: string,
+        image?: string,
+        style: {
+            left: number,
+            top: number,
+            width: number,
+            height: number,
+            backgroundColor: string,
+            borderColor: string,
+            borderWidth: number,
+            borderRadius: number,
+            textAlign: 'left' | 'center' | 'right',
+            fontSize: number,
+            lineHeight: number
+        },
+        icon: 'green' | 'white' | 'dark' | 'light'
+    }
+
+    /** 创建游戏圈按钮。游戏圈按钮被点击后会跳转到小游戏的游戏圈。更多关于游戏圈的信息见 游戏圈使用指南*/
+    function createGameClubButton(object: {
+        type: 'text' | 'image',
+        text?: string,
+        image?: string,
+        style: {
+            left: number,
+            top: number,
+            width: number,
+            height: number,
+            backgroundColor: string,
+            borderColor: string,
+            borderWidth: number,
+            borderRadius: number,
+            textAlign: 'left' | 'center' | 'right',
+            fontSize: number,
+            lineHeight: number
+        },
+        icon: 'green' | 'white' | 'dark' | 'light'
+    }): GameClubButton;
+
+    /** 进入客服会话。要求在用户发生过至少一次 touch 事件后才能调用。后台接入方式与小程序一致，详见 客服消息接入*/
+    function openCustomerServiceConversation(object: {
+        sessionFrom?: string,
+        showMessageCard?: boolean,
+        sendMessageTitle?: string,
+        sendMessagePath?: string,
+        sendMessageImg?: string,
+        success?: (res?: any) => void,
+        fail?: (res?: any) => void,
+        complete?: (res?: any) => void
+    }): void;
+
+    /** 获取用户过去三十天微信运动步数。需要先调用 wx.login 接口。步数信息会在用户主动进入小程序时更新。*/
+    function getWeRunData(object: {
+        success?: (res: { encryptedData: string, iv: string }) => void,
+        fail?: (res?: any) => void,
+        complete?: (res?: any) => void
+    }): void;
+
+    /** 取消监听横竖屏切换事件*/
+    function offDeviceOrientationChange(callback: () => void): void;
+
+    /** 监听横竖屏切换事件*/
+    function onDeviceOrientationChange(callback: (res: { value: 'portrait' | 'landscape' | 'landscapeReverse' }) => void): void;
+
+    /** 监听加速度数据事件。频率根据 wx.startAccelerometer() 的 interval 参数。可使用 wx.stopAccelerometer() 停止监听。*/
+    function onAccelerometerChange(callback: (res: { x: number, y: number, z: number }) => void): void;
+
+    /** 停止监听加速度数据。*/
+    function stopAccelerometer(object: {
+        success?: (res: { encryptedData: string, iv: string }) => void,
+        fail?: (res?: any) => void,
+        complete?: (res?: any) => void
+    }): void;
+
+    /** 开始监听加速度数据。*/
+    function startAccelerometer(object: {
+        interval: string,
+        success?: (res: { encryptedData: string, iv: string }) => void,
+        fail?: (res?: any) => void,
+        complete?: (res?: any) => void
+    }): void;
+
+    /**
+     * 获取设备电量
+     */
+    function getBatteryInfo(object: {
+        success?: (res: { level: string, isCharging: boolean }) => void,
+        fail?: (res?: any) => void,
+        complete?: (res?: any) => void
+    }): void;
+
+    /**
+     * wx.getBatteryInfo 的同步版本
+     */
+    function getBatteryInfoSync(): { level: string, isCharging: boolean };
+
+    /** 获取系统剪贴板的内容*/
+    function getClipboardData(object: {
+        success?: (res: { data: string }) => void,
+        fail?: (res?: any) => void,
+        complete?: (res?: any) => void
+    }): void;
+
+    /** 设置系统剪贴板的内容*/
+    function setClipboardData(object: {
+        data: string,
+        success?: (res?: any) => void,
+        fail?: (res?: any) => void,
+        complete?: (res?: any) => void
+    }): void;
+
+    /**
+     * 监听罗盘数据，频率：5 次/秒，接口调用后会自动开始监听，可使用 wx.stopCompass 停止监听。
+     * accuracy 在 iOS/Android 的差异
+     * 由于平台差异，accuracy 在 iOS/Android 的值不同。
+     * iOS：accuracy 是一个 number 类型的值，表示相对于磁北极的偏差。0 表示设备指向磁北，90 表示指向东，180 表示指向南，依此类推。
+     * Android：accuracy 是一个 string 类型的枚举值。
+     */
+    function onCompassChange(callback: (res: { direction: number, accuracy: number | string }) => void): void;
+
+    /**
+     * 开始监听陀螺仪数据。
+     */
+    function startCompass(object: {
+        interval?: string,
+        success?: (res?: any) => void,
+        fail?: (res?: any) => void,
+        complete?: (res?: any) => void
+    }): void;
+
+    /**
+     * 停止监听陀螺仪数据。
+     */
+    function stopCompass(object: {
+        success?: (res?: any) => void,
+        fail?: (res?: any) => void,
+        complete?: (res?: any) => void
+    }): void;
+
+    /**
+     * 监听设备方向变化事件。频率根据 wx.startDeviceMotionListening() 的 interval 参数。可以使用 wx.stopDeviceMotionListening() 停止监听。
+     */
+    function onDeviceMotionChange(callback: (res: {
+        alpha: number,
+        beta: number,
+        gamma: number,
+    }) => void): void;
+
+    /** 停止监听设备方向的变化。*/
+    function stopDeviceMotionListening(
+        success?: (res?: any) => void,
+        fail?: (res?: any) => void,
+        complete?: (res?: any) => void
+    ): void;
+
+    /** 开始监听设备方向的变化。*/
+    function startDeviceMotionListening(
+        interval: string,
+        success?: (res?: any) => void,
+        fail?: (res?: any) => void,
+        complete?: (res?: any) => void
+    ): void;
+
+    /** 监听网络状态变化事件*/
+    function onNetworkStatusChange(callback: (res: { isConnected: boolean, networkType: string }) => void): void;
+
+    /** 获取网络类型*/
+    function getNetworkType(object: {
+        success?: (res: { networkType: string }) => void,
+        fail?: (res?: any) => void,
+        complete?: (res?: any) => void
+    }): void;
+
+    /** 使手机发生较长时间的振动（400 ms)*/
+    function vibrateLong(object: {
+        success?: (res?: any) => void,
+        fail?: (res?: any) => void,
+        complete?: (res?: any) => void
+    }): void;
+
+    /** 使手机发生较短时间的振动（15 ms）。仅在 iPhone 7 / 7 Plus 以上及 Android 机型生效*/
+    function vibrateShort(object: {
+        success?: (res?: any) => void,
+        fail?: (res?: any) => void,
+        complete?: (res?: any) => void
+    }): void;
+
+    /** 
+     * 监听内存不足告警事件。
+     * 当 iOS/Android 向小程序进程发出内存警告时，触发该事件。触发该事件不意味小程序被杀，大部分情况下仅仅是告警，开发者可在收到通知后回收一些不必要资源避免进一步加剧内存紧张。
+     */
+    function onMemoryWarning(callback: (res: { level: number }) => void): void;
+
+    /** 设置屏幕亮度*/
+    function setScreenBrightness(object: {
+        value: number,
+        success?: (res?: any) => void,
+        fail?: (res?: any) => void,
+        complete?: (res?: any) => void
+    }): void;
+
+    /** 设置是否保持常亮状态。仅在当前小程序生效，离开小程序后设置失效。*/
+    function setKeepScreenOn(object: {
+        keepScreenOn: boolean,
+        success?: (res?: any) => void,
+        fail?: (res?: any) => void,
+        complete?: (res?: any) => void
+    }): void;
+
+    /** 获取屏幕亮度*/
+    function getScreenBrightness(object: {
+        success?: (res: { value: number }) => void,
+        fail?: (res?: any) => void,
+        complete?: (res?: any) => void
+    }): void;
+
+    /**
+     * 对于游戏来说，每帧 16ms 是极其宝贵的，如果有一些可以异步处理的任务，可以放置于 Worker 中运行，待运行结束后，再把结果返回到主线程。Worker 运行于一个单独的全局上下文与线程中，不能直接调用主线程的方法，Worker 也不具备渲染的能力。 Worker 与主线程之间的数据传输，双方使用 Worker.postMessage() 来发送数据，Worker.onMessage() 来接收数据，传输的数据并不是直接共享，而是被复制的。
+     * @see https://developers.weixin.qq.com/minigame/dev/tutorial/usability/worker.html
+     */
+    interface Worker {
+        /**
+         * 监听接收主线程/Worker 线程向当前线程发送的消息
+         */
+        onMessage(callback: (res: { message: Object }) => void): void;
+        /**
+         * 向主线程/Worker 线程发送的消息。
+         */
+        postMessage(message: {}): void;
+        /**
+         * 结束当前 worker 线程，仅限在主线程 worker 对象上调用。
+         */
+        terminate(): void;
+    }
+
+    /**
+     * 创建一个 Worker 线程，目前限制最多只能创建一个 Worker，创建下一个 Worker 前请调用 Worker.terminate
+     */
+    function createWorker(scriptPath: string): Worker;
+
+    /**
+     * 云开发小程序端
+     */
+    namespace cloud {
+
+        /** 在调用云开发各 API 前，需先调用初始化方法 init 一次（全局只需一次，多次调用时只有第一次生效）*/
+        function init(options?: { env?: string | { database?: string, storage?: string, functions?: string }, traceUser?: false }): void;
+
+        /** 调用云函数*/
+        function callFunction(obj: { name: string, data?: Object, config?: cloudEnvType, success: (res: { errMsg: string, result: any, requestID: string }) => void, fail?: cloudCallFailType, complete?: cloudEmptyFunction }): void;
+        function callFunction(obj: { name: string, data?: Object, config?: cloudEnvType, success?: (res: { errMsg: string, result: any, requestID: string }) => void, fail: cloudCallFailType, complete?: cloudEmptyFunction }): void;
+        function callFunction(obj: { name: string, data?: Object, config?: cloudEnvType, success?: (res: { errMsg: string, result: any, requestID: string }) => void, fail?: cloudCallFailType, complete: cloudEmptyFunction }): void;
+        function callFunction(obj: { name: string, data?: Object, config?: cloudEnvType }): Promise<{ errMsg: string, result: any, requestID: string }>;
+
+        /** 将本地资源上传至云存储空间，如果上传至同一路径则是覆盖写*/
+        function uploadFile(obj: { cloudPath: string, filePath: string, header?: Object, config?: cloudEnvType, success: (res: { fileID: string, statusCode: number, errMsg: string }) => void, fail?: cloudCallFailType, complete?: cloudEmptyFunction }): void;
+        function uploadFile(obj: { cloudPath: string, filePath: string, header?: Object, config?: cloudEnvType, success?: (res: { fileID: string, statusCode: number, errMsg: string }) => void, fail: cloudCallFailType, complete?: cloudEmptyFunction }): void;
+        function uploadFile(obj: { cloudPath: string, filePath: string, header?: Object, config?: cloudEnvType, success?: (res: { fileID: string, statusCode: number, errMsg: string }) => void, fail?: cloudCallFailType, complete: cloudEmptyFunction }): void;
+        function uploadFile(obj: { cloudPath: string, filePath: string, header?: Object, config?: cloudEnvType }): Promise<{ fileID: string, statusCode: number, errMsg: string }>;
+
+        /** 从云存储空间下载文件*/
+        function downloadFile(obj: { fileID: string, config?: cloudEnvType, success: (res: { tempFilePath: string, statusCode: number, errMsg: string }) => void, fail?: cloudCallFailType, complete?: cloudEmptyFunction }): void;
+        function downloadFile(obj: { fileID: string, config?: cloudEnvType, success?: (res: { tempFilePath: string, statusCode: number, errMsg: string }) => void, fail: cloudCallFailType, complete?: cloudEmptyFunction }): void;
+        function downloadFile(obj: { fileID: string, config?: cloudEnvType, success?: (res: { tempFilePath: string, statusCode: number, errMsg: string }) => void, fail?: cloudCallFailType, complete: cloudEmptyFunction }): void;
+        function downloadFile(obj: { cloudPath: string, filePath: string, header?: Object, config?: cloudEnvType }): Promise<{ tempFilePath: string, statusCode: number, errMsg: string }>;
+
+        /** 用云文件 ID 换取真实链接，可自定义有效期，默认一天且最大不超过一天。一次最多取 50 个。*/
+        function getTempFileURL(obj: { fileList: string[], config?: cloudEnvType, success: (fileList: Array<{ fileID: string, tempFileURL: string, status: number, errMsg: string }>) => void, fail?: cloudCallFailType, complete?: cloudEmptyFunction }): void;
+        function getTempFileURL(obj: { fileList: string[], config?: cloudEnvType, success?: (fileList: Array<{ fileID: string, tempFileURL: string, status: number, errMsg: string }>) => void, fail: cloudCallFailType, complete?: cloudEmptyFunction }): void;
+        function getTempFileURL(obj: { fileList: string[], config?: cloudEnvType, success?: (fileList: Array<{ fileID: string, tempFileURL: string, status: number, errMsg: string }>) => void, fail?: cloudCallFailType, complete: cloudEmptyFunction }): void;
+        function getTempFileURL(obj: { fileList: string[], config?: cloudEnvType }): Promise<Array<{ fileID: string, tempFileURL: string, status: number, errMsg: string }>>;
+
+        /** 从云存储空间删除文件，一次最多 50 个*/
+        function deleteFile(obj: { fileList: string[], config?: cloudEnvType, success: (fileList: Array<{ fileID: string, status: number, errMsg: string }>) => void, fail?: cloudCallFailType, complete?: cloudEmptyFunction }): void;
+        function deleteFile(obj: { fileList: string[], config?: cloudEnvType, success?: (fileList: Array<{ fileID: string, status: number, errMsg: string }>) => void, fail: cloudCallFailType, complete?: cloudEmptyFunction }): void;
+        function deleteFile(obj: { fileList: string[], config?: cloudEnvType, success?: (fileList: Array<{ fileID: string, status: number, errMsg: string }>) => void, fail?: cloudCallFailType, complete: cloudEmptyFunction }): void;
+        function deleteFile(obj: { fileList: string[], config?: cloudEnvType }): Promise<Array<{ fileID: string, status: number, errMsg: string }>>;
+
+        //============== 数据库 API 手动添加的，可能有错误，请 pr==============
+        function database(options?: cloudEnvType): Database;
+    }
+}
+
+/** */
+type cloudEnvType = { env: string }
+/** */
+type cloudCallFailType = (err: { errCode: string, errMsg: string }) => void;
+/** */
+type cloudEmptyFunction = () => void;
+
+interface Database {
+    command: Command;
+    serverDate(options?: object): ServerDate;
+    Geo: Geo;
+    createCollection: Promise<CreateCollectionSuccess>;
+    collection(name: string): Collection;
+    RegExp(options: RegExpOptions): DBRegExp;
+}
+
+type DBRegExp = RegExp;
+
+type ServerDate = Date;
+
+interface RegExpOptions {
+    regexp: string; // 正则表达式，字符串形式
+    options: "i" | "m" | "s"; // flags，包括 i, m, s 但前端不做强限制
+}
+
+interface Query {
+    get(): Promise<GetCollectionResult>;
+    update(options: CommonOption): Promise<UpateCollectionResult>;
+    remove(): Promise<RemoveCollectionResult>;
+    count(): Promise<CountCollectionResult>;
+    orderBy(fieldName: string, order: "asc" | "desc"): Collection | Query;
+    limit(max: number): Collection | Query;
+    skip(offset: number): Collection | Query;
+    field(definition: object): Collection | Query | Document;
+}
+
+interface Collection extends Query {
+    doc(id: string | number): Document;
+    add(options: CommonOption): Promise<AddCollectionResult>;
+    where(rule: object): Query;
+
+    aggregate(): Aggregate;
+}
+
+interface CommonOption<T = any> {
+    data: T;
+}
+
+interface GetCollectionResult {
+    data: any[];
+}
+
+interface AddCollectionResult {
+    _id: string | number;
+}
+
+interface UpateCollectionResult {
+    stats: {
+        updated: number;
+    };
+}
+
+interface RemoveCollectionResult {
+    stats: {
+        removed: number;
+    };
+}
+
+interface CountCollectionResult {
+    stats: {
+        total: number;
+    };
+}
+
+interface Document {
+    get(): Promise<{ data: any }>;
+    update(options: CommonOption): Promise<{ stats: { updated: 0 | 1 } }>;
+    set(
+        options: CommonOption
+    ): Promise<{
+        _id: string | number;
+        stats: { updated: 0 | 1; created: 0 | 1 };
+    }>;
+    remove(): Promise<{ stats: { removed: 0 | 1 } }>;
+}
+
+// collection(name: string): Collection
+interface Command {
+    eq(value: any): Command;
+    neq(value: any): Command;
+    lt(value: number): Command;
+    lte(value: number): Command;
+    gt(value: number): Command;
+    gte(value: number): Command;
+    in(values: any[]): Command;
+    nin(values: any[]): Command;
+    and(command: Command): Command;
+    and(...commands: Command[]): Command;
+    or(command: Command | CrosFieldCommand[]): Command;
+    or(...commands: Command[]): Command;
+    set(value: any): Command;
+    remove(): Command;
+    inc(value: number): Command;
+    mul(value: number): Command;
+    push(values: any[]): Command;
+    pop(): Command;
+    shift(): Command;
+    unshift(values: any[]): Command;
+
+    geoNear(options: GeoNearOptions): Command;
+    geoWithin(options: GeoWithinOptions): Command;
+    geoIntersects(options: GeoIntersectsOptions): Command;
+
+    // aggregate: AggregationOperators
+    aggregate: any;
+}
+
+interface CrosFieldCommand {
+    [filed: string]: Command | boolean;
+}
+
+interface GeoNearOptions {
+    geometry: Point; // 点的地理位置
+    maxDistance?: number; // 选填，最大距离，单位为米
+    minDistance?: number; // 选填，最小距离，单位为米
+}
+
+interface GeoWithinOptions {
+    geometry: Polygon | MultiPolygon;
+}
+
+interface GeoIntersectsOptions {
+    geometry:
+    | Point
+    | LineString
+    | MultiPoint
+    | MultiLineString
+    | Polygon
+    | MultiPolygon; // 地理位置
+}
+
+interface Geo {
+    Point: Point;
+    LineString: LineString;
+    Polygon: Polygon;
+}
+
+interface Point {
+    (longitude: number, latitude: number): Point;
+}
+
+type PointCoordinates = [number, number];
+
+interface Point {
+    type: "Point";
+    coordinates: PointCoordinates;
+}
+
+interface LineString {
+    (points: Point[]): LineString;
+}
+
+interface LineString {
+    type: "LineString";
+    coordinates: PointCoordinates[];
+}
+
+interface Polygon {
+    (lineStrings: LineString[]): Polygon;
+}
+
+interface Polygon {
+    type: "Polygon";
+    coordinates: PointCoordinates[][];
+}
+
+interface MultiPoint {
+    (points: Point[]): MultiPoint;
+}
+
+interface MultiPoint {
+    type: "MultiPoint";
+    coordinates: PointCoordinates[];
+}
+
+interface MultiLineString {
+    (polygons: LineString[]): MultiLineString;
+}
+
+interface MultiLineString {
+    type: "MultiLineString";
+    coordinates: PointCoordinates[][];
+}
+
+interface MultiPolygon {
+    (polygons: Polygon[]): MultiPolygon;
+}
+
+interface MultiPolygon {
+    type: "MultiPolygon";
+    coordinates: PointCoordinates[][][];
+}
+
+// interface GeoJSON<T> {
+//     type: T;
+//     coordinates: [];
+// }
+
+interface CreateCollectionSuccess {
+    errMsg: string;
+}
+
+interface Aggregate {
+    addFields(fieldObj: { [fieldName: string]: any }): Aggregate;
+    bucket(bucketObj: {
+        groupBy: any;
+        boundaries: any[];
+        default?: any;
+        output?: object;
+    }): Aggregate;
+    bucketAuto(bucketObj: {
+        groupBy: any;
+        buckets: number;
+        granularity?: any;
+        output?: object;
+    }): Aggregate;
+    count(expr: string): any;
+    geoNear(geoNearObj: {
+        near: Point;
+        spherical: true;
+        limit?: number;
+        maxDistance?: number;
+        minDistance?: number;
+        query?: object;
+        distanceMultiplier?: number;
+        distanceField: string;
+        includeLocs?: string;
+        key?: string;
+    }): Aggregate;
+    group(groupObj: { _id: any;[fieldName: string]: any }): Aggregate;
+    limit(limitRecords: number): any;
+    match(matchObj: { [fieldName: string]: any }): Aggregate;
+    project(projectObj: { [fieldName: string]: any }): Aggregate;
+    replaceRoot(replaceRootObj: { newRoot: any }): Aggregate;
+    sample(replaceRootObj: { size: number }): Aggregate;
+    skip(skipNum: number): any;
+    sort(replaceRootObj: { [fieldName: string]: 1 | -1 }): Aggregate;
+    sortByCount(fieldName: string): Aggregate;
+    unwind(unwindObj: {
+        path: string;
+        includeArrayIndex?: string;
+        preserveNullAndEmptyArrays?: boolean;
+    }): Aggregate;
+    end(): void;
+}
+
+// type
+interface AggregationOperators {
+    abs(operand: number): number;
+    add(...operand: any[]): any;
+    addToSet(expression: string): any;
+    allElementsTrue(expression: [string]): boolean;
+    and(expression: boolean[]): boolean;
+    lt(expression: string, value: number): boolean;
+    lte(expression: string, value: number): boolean;
+    anyElementTrue(expression: [string]): boolean;
+    arrayElemAt(expression: [string, number]): any;
+    arrayToObject(expression: string): object;
+    // arrayToObject(expression: [string, any][]): object
+    // arrayToObject(expression: {k: string; v: any}[]): object
+    avg(expression: string): number;
+}
+
+// /**
+//  * 基础库 2.0.0 开始支持，低版本需做兼容处理。
+//  * 将一个 Canvas 对应的 Texture 绑定到 WebGL 上下文。
+//  */
+// declare var WebGLRenderingContext: {
+//     /**
+//      * 
+//      * @param texture WebGL 的纹理类型枚举值
+//      * @param canvas 需要绑定为 Texture 的 Canvas
+//      */
+//     wxBindCanvasTexture: (texture: number, canvas: wx.Canvas) => void
+// }
+ encoding: string, success?: (res?: any) => void, fail?: (res: { errMsg: string }) => void, complete?: (res?: any) => void }): void;
+
+        /**
+         * FileSystemManager.writeFile 的同步版本
+         */
+        writeFileSync(filePath: string, data: string | ArrayBuffer, encoding: string): void;
+    }
+
+    /** 描述文件状态的对象*/
+    interface Stats {
+        /**
+         * 文件的类型和存取的权限，对应 POSIX stat.st_mode
+         */
+        mode: string;
+        /**
+         * 文件大小，单位：B，对应 POSIX stat.st_size
+         */
+        size: number;
+        /**
+         * 文件最近一次被存取或被执行的时间，UNIX 时间戳，对应 POSIX stat.st_atime
+         */
+        lastAccessedTime: number;
+        /**
+        * 文件最后一次被修改的时间，UNIX 时间戳，对应 POSIX stat.st_mtime
+        */
+        lastModifiedTime: number;
+        /**
+         * 判断当前文件是否一个目录
+         */
+        isDirectory(): boolean;
+        /**
+         * 判断当前文件是否一个普通文件
+         */
+        isFile(): boolean;
+    }
+
+    /**
+     * 获取全局唯一的文件管理器
+     */
+    function getFileSystemManager(): FileSystemManager;
+
+    /** 打开另一个小程序*/
+    function navigateToMiniProgram(object: {
+        appId: string,
+        path?: string,
+        extraData?: {},
+        envVersion?: string,
+        success?: (res?: any) => void, fail?: (res?: any) => void, complete?: (res?: any) => void
+    }): void;
+
+    /**
+     * 用户信息
+     */
+    interface UserInfo {
+        /** 用户昵称*/
+        nickName: string;
+        /** 用户头像图片的 URL。URL 最后一个数值代表正方形头像大小（有 0、46、64、96、132 数值可选，0 代表 640x640 的正方形头像，46 表示 46x46 的正方形头像，剩余数值以此类推。默认132），用户没有头像时该项为空。若用户更换头像，原有头像 URL 将失效。*/
+        avatarUrl: string;
+        /** 用户性别*/
+        gender: 0 | 1 | 2;
+        /** 用户所在国家*/
+        country: string;
+        /** 用户所在省份*/
+        province: string;
+        /** 用户所在城市*/
+        city: string;
+        /** 显示 country，province，city 所用的语言*/
+        language: 'en' | 'zh_CN' | 'zh_TW'
+    }
+
+    /**
+     * 调用前需要 用户授权 scope.userInfo。
+     * 获取用户信息。
+     */
+    function getUserInfo(object: {
+        withCredentials?: boolean, lang?: string, success?: (res: {
+            ƒ
+            userInfo: UserInfo,
+            rawData: string,
+            signature: string,
+            encryptedData: string,
+            iv: string
+        }) => void, fail?: (res?: any) => void, complete?: (res?: any) => void
+    }): void;
+
+    /** 用户信息按钮*/
+    interface UserInfoButton {
+        /** 按钮的类型*/
+        type: 'text' | 'image';
+        /** 按钮上的文本，仅当 type 为 text 时有效*/
+        text: string;
+        /** 按钮的背景图片，仅当 type 为 image 时有效*/
+        image: string;
+        /** 按钮的样式*/
+        style: {
+            left: number,
+            top: number,
+            width: number,
+            height: number,
+            backgroundColor: string,
+            borderColor: string,
+            borderWidth: number,
+            borderRadius: number,
+            textAlign: string,
+            fontSize: number,
+            lineHeight: number
+        },
+        /** 显示用户信息按钮*/
+        show();
+
+        /** 隐藏用户信息按钮。*/
+        hide();
+
+        /** 销毁用户信息按钮*/
+        destroy();
+
+        /** 监听用户信息按钮的点击事件*/
+        onTap(callback: (res: {
+            userInfo: UserInfo,
+            rawData: string,
+            signature: string,
+            encryptedData: string,
+            iv: string
+        }) => void);
+
+        /** 取消监听用户信息按钮的点击事件*/
+        offTap(callback: () => void);
+    }
+
+    /** 创建用户信息按钮*/
+    function createUserInfoButton(object: {
+        type: "text" | "image",
+        text?: string,
+        image?: string,
+        style: {
+            left: number,
+            top: number,
+            width: number,
+            height: number,
             backgroundColor: string,
             borderColor: string,
             borderWidth: number,
